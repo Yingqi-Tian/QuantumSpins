@@ -429,7 +429,46 @@ void gpu_simple_lanczos(double * MPO, int * MPO_dim,\
     status = cublasDestroy(handle);
     
     return;
-    
-    
-    
 }
+
+void gpu_ac_prime(  double * x, int * x_dim,\
+                    double * mpojhleft, int * mpojhleft_dim,\
+                    double * hright, int * hright_dim,\
+                    double * ans)
+{
+    cublasHandle_t handle;
+    cublasStatus_t status;
+
+    double * x_d;
+    double * mpojhleft_d;
+    double * hright_d;
+    double * ans_d;
+
+    size_t x_size=x_dim[0]*x_dim[1]*x_dim[2];
+    size_t mpojhleft_size=mpojhleft_dim[0]*mpojhleft_dim[1]*mpojhleft_dim[2]*mpojhleft_dim[3]*mpojhleft_dim[4];
+    size_t hright_size=hright_dim[0]*hright_dim[1]*hright_dim[2];
+
+    cudaMalloc(reinterpret_cast<void**>(&x_d), x_size * sizeof(x_d[0]));
+    cudaMalloc(reinterpret_cast<void**>(&ans_d), x_size * sizeof(ans_d[0]));
+    cudaMalloc(reinterpret_cast<void**>(&mpojhleft_d ), mpojhleft_size  * sizeof(mpojhleft_d[0] ));
+    cudaMalloc(reinterpret_cast<void**>(&hright_d ), hright_size  * sizeof(hright_d[0] ));
+
+    status = cublasSetVector(mpojhleft_size , sizeof(mpojhleft_d[0]), mpojhleft, 1, mpojhleft_d, 1);
+    status = cublasSetVector(hright_size  , sizeof(hright_d[0] ), hright , 1, hright_d , 1);
+    status = cublasSetVector(x_size  , sizeof(x_d[0] ), x , 1, x_d , 1);
+
+    gpu_Heffv_cublas(handle,\
+                        mpojhleft_d, mpojhleft_dim,\
+                        hright_d, hright_dim,\
+                        x_d, x_dim,\
+                        ans_d);
+    
+    status = cublasGetVector(x_size, sizeof(ans_d[0]), ans_d, 1, ans, 1);
+
+    cudaFree(x_d);
+    cudaFree(mpojhleft_d);
+    cudaFree(hright_d);
+    cudaFree(ans_d);
+}
+    
+
