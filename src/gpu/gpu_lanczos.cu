@@ -188,7 +188,7 @@ void gpu_Heffv_cublas(cublasHandle_t & handle,\
     //ENVL_MPO_MPS * ENVR
     transb=CUBLAS_OP_T;
     status = cublasDgemm(handle, transa, transb,
-        ENVL_MPO_dim[0]*ENVL_MPO_dim[1], ENVR_dim[0], ENVL_MPO_dim[2]*V0_dim[2], &one, ENVL_MPO_MPS_d, ENVL_MPO_dim[0]*ENVL_MPO_dim[1], ENVR_d, ENVR_dim[1]*ENVR_dim[2], &zero, V1_d, ENVL_MPO_dim[0]*ENVL_MPO_dim[1]);
+        ENVL_MPO_dim[0]*ENVL_MPO_dim[1], ENVR_dim[0], ENVL_MPO_dim[2]*V0_dim[2], &one, ENVL_MPO_MPS_d, ENVL_MPO_dim[0]*ENVL_MPO_dim[1], ENVR_d, ENVR_dim[0], &zero, V1_d, ENVL_MPO_dim[0]*ENVL_MPO_dim[1]);
 
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop); 
@@ -259,6 +259,7 @@ void gpu_simple_lanczos(double * MPO, int * MPO_dim,\
 {
     cublasHandle_t handle;
     cublasStatus_t status;
+	status = cublasCreate(&handle);
     *info = 0;
     
     double * MPO_d;
@@ -438,6 +439,7 @@ void gpu_ac_prime(  double * x, int * x_dim,\
 {
     cublasHandle_t handle;
     cublasStatus_t status;
+	status = cublasCreate(&handle);
 
     double * x_d;
     double * mpojhleft_d;
@@ -469,6 +471,7 @@ void gpu_ac_prime(  double * x, int * x_dim,\
     cudaFree(mpojhleft_d);
     cudaFree(hright_d);
     cudaFree(ans_d);
+    status = cublasDestroy(handle);
 }
     
 
